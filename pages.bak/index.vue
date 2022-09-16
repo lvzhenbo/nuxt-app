@@ -467,7 +467,7 @@ const affixListenTo = () => document.documentElement
 </script>
 
 <style>
-body {
+/* body {
   padding: 16px;
-}
+} */
 </style>

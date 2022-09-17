@@ -3,7 +3,7 @@
     inline-theme-disabled
     :locale="zhCN"
     :date-locale="dateZhCN"
-    :theme="isDark ? darkTheme : null "
+    :theme="theme"
   >
     <NLayout class="h-screen">
       <NLayoutHeader>颐和园</NLayoutHeader>
@@ -27,15 +27,25 @@ import {
   NLayoutHeader,
 } from "naive-ui";
 import { zhCN, dateZhCN, useOsTheme, darkTheme } from "naive-ui";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { usePreferredDark } from '@vueuse/core';
 
 const osThemeRef = useOsTheme();
 const isDark = usePreferredDark();
-console.log(isDark.value);
+// console.log(isDark.value);
+const theme = ref(null);
 
-const theme = computed(() => (osThemeRef.value === 'dark' ? darkTheme : null));
-console.log(osThemeRef.value);
+// const theme = computed(() => (osThemeRef.value === 'dark' ? darkTheme : null));
+watch(() => osThemeRef.value, () => {
+  theme.value = osThemeRef.value === 'dark' ? darkTheme : null
+})
+function getTheme() {
+  theme.value = osThemeRef.value === 'dark' ? darkTheme : null
+}
+
+onMounted(() => {
+  getTheme();
+});
 
 </script>
 

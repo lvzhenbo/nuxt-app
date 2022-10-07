@@ -37,7 +37,7 @@
           </NForm>
         </NCard>
       </NLayoutContent>
-      <NLayoutFooter>成府路</NLayoutFooter>
+      <!-- <NLayoutFooter>成府路</NLayoutFooter> -->
     </NLayout>
   </NConfigProvider>
   <!-- <div>

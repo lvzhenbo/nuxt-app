@@ -9,10 +9,10 @@
   },
   "devDependencies": {
     "@css-render/vue3-ssr": "^0.15.11",
-    "@nuxtjs/tailwindcss": "^5.3.3",
-    "@vueuse/core": "^9.2.0",
-    "@vueuse/nuxt": "^9.2.0",
-    "naive-ui": "^2.33.3",
+    "@nuxtjs/tailwindcss": "^5.3.4",
+    "@vueuse/core": "^9.3.0",
+    "@vueuse/nuxt": "^9.3.0",
+    "naive-ui": "^2.33.4",
     "nuxt": "^3.0.0-rc.11",
     "vfonts": "^0.0.3"
   }

@@ -9,11 +9,19 @@
   },
   "devDependencies": {
     "@css-render/vue3-ssr": "^0.15.11",
-    "@nuxtjs/tailwindcss": "^5.3.4",
-    "@vueuse/core": "^9.3.0",
-    "@vueuse/nuxt": "^9.3.0",
-    "naive-ui": "^2.33.4",
-    "nuxt": "^3.0.0-rc.11",
+    "@nuxtjs/tailwindcss": "^6.1.2",
+    "@vueuse/core": "^9.4.0",
+    "@vueuse/nuxt": "^9.4.0",
+    "archiver": "^5.3.1",
+    "chardet": "^1.5.0",
+    "formidable": "^2.0.1",
+    "fs-extra": "^10.1.0",
+    "globby": "^13.1.2",
+    "iconv-lite": "^0.6.3",
+    "naive-ui": "^2.33.5",
+    "nuxt": "^3.0.0-rc.12",
+    "tmp-promise": "^3.0.3",
+    "unzipper": "^0.10.11",
     "vfonts": "^0.0.3"
   }
 }

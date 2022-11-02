@@ -83,7 +83,7 @@ function getTheme() {
 
 onMounted(async () => {
   getTheme();
-  await temp();
+  // await temp();
 });
 
 async function temp() {
@@ -138,9 +138,20 @@ const options = [
 
 function handleSubmit(e: MouseEvent) {
   e.preventDefault()
-  epubFormRef.value?.validate((errors) => {
+  epubFormRef.value?.validate(async (errors) => {
     if (!errors) {
-      console.log(epubFormValue.value)
+      // console.log(epubFormValue.value);
+      const params = new FormData();
+      const key = new Date().getTime();
+      params.append('converter', epubFormValue.value.converter);
+      params.append('file', epubFormValue.value.fileList[0].file);
+      const { data } = await useFetch('/api/epub', {
+        method: 'POST',
+        body: params,
+        key: key.toString(),
+      });
+      console.log(data);
+      
     } else {
       console.log(errors)
     }

@@ -28,9 +28,14 @@ export default defineEventHandler(async (event) => {
   await Promise.all(files.map((f) => textConvert(f, { type: config.type })));
   await zipDir(dir, config.dest || filePath);
   await cleanup();
-  return {
-    filepath: file.file.filepath,
-  };
+
+  return sendStream(
+    event,
+    fs.createReadStream(filePath, { start: 0, end: file.file.size })
+  );
+  // return {
+  //   filepath: file.file.filepath,
+  // };
 });
 
 function getData(

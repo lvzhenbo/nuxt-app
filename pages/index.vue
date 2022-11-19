@@ -22,7 +22,6 @@
             <NFormItem label="文件">
               <NUpload
                 v-model:file-list="epubFormValue.fileList"
-                accept="application/epub+zip"
                 :max="1"
                 :directory="false"
               >

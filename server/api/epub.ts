@@ -11,28 +11,25 @@ import archiver from "archiver";
 
 export default defineEventHandler(async (event) => {
   const { file, _fields } = await getData(event);
-  const config: any = {};
+  // const config: any = {};
   const filePath = file.file.filepath;
-  config.type = _fields.converter;
-  const { path: dir, cleanup } = await tmp.dir({ unsafeCleanup: true });
+  // config.type = _fields.converter;
+  // const { path: dir, cleanup } = await tmp.dir({ unsafeCleanup: true });
 
-  await new Promise((res, rej) => {
-    fs.createReadStream(file.file.filepath)
-      .pipe(unzipper.Extract({ path: dir }))
-      .on("close", res)
-      .on("error", rej);
-  });
-  const files = (
-    await globby("**/*.{htm,html,xhtml,ncx,opf}", { cwd: dir })
-  ).map((f) => path.join(dir, f));
-  await Promise.all(files.map((f) => textConvert(f, { type: config.type })));
-  await zipDir(dir, config.dest || filePath);
-  await cleanup();
+  // await new Promise((res, rej) => {
+  //   fs.createReadStream(file.file.filepath)
+  //     .pipe(unzipper.Extract({ path: dir }))
+  //     .on("close", res)
+  //     .on("error", rej);
+  // });
+  // const files = (
+  //   await globby("**/*.{htm,html,xhtml,ncx,opf}", { cwd: dir })
+  // ).map((f) => path.join(dir, f));
+  // await Promise.all(files.map((f) => textConvert(f, { type: config.type })));
+  // await zipDir(dir, config.dest || filePath);
+  // await cleanup();
 
-  return sendStream(
-    event,
-    fs.createReadStream(filePath, { start: 0, end: file.file.size })
-  );
+  return sendStream(event, fs.createReadStream(filePath));
   // return {
   //   filepath: file.file.filepath,
   // };

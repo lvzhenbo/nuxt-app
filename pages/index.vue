@@ -176,7 +176,7 @@ function handleSubmit(e: MouseEvent) {
       });
       // console.log(data.value);
       
-      // Download(data.value, epubFormValue.value.fileList[0].file.name);
+      Download(data.value, epubFormValue.value.fileList[0].file.name);
     } else {
       console.log(errors);
     }

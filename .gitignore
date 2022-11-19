@@ -6,6 +6,7 @@ node_modules
 .output
 .env
 dist
+.history
 
 package-lock.json
 yarn.lock

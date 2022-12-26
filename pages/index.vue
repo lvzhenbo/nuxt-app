@@ -60,7 +60,6 @@
           </NForm>
         </NCard>
       </NLayoutContent>
-      <!-- <NLayoutFooter>成府路</NLayoutFooter> -->
     </NLayout>
   </NConfigProvider>
 </template>
@@ -97,10 +96,12 @@ const epubFormValue = ref({
 watch(
   () => osThemeRef.value,
   () => {
+    // @ts-ignore
     theme.value = osThemeRef.value === "dark" ? darkTheme : null;
   }
 );
 function getTheme() {
+  //@ts-ignore
   theme.value = osThemeRef.value === "dark" ? darkTheme : null;
 }
 
@@ -163,18 +164,19 @@ function handleSubmit(e: MouseEvent) {
   e.preventDefault();
   epubFormRef.value?.validate(async (errors) => {
     if (!errors) {
-      console.log(epubFormValue.value);
       const params = new FormData();
       const key = new Date().getTime();
+      //@ts-ignore
       params.append("converter", epubFormValue.value.converter);
+      //@ts-ignore
       params.append("file", epubFormValue.value.fileList[0].file);
       const { data } = await useFetch("/api/epub", {
         method: "POST",
         body: params,
         key: key.toString(),
+        responseType: 'blob',
       });
-      // console.log(data.value);
-      
+      // @ts-ignore
       Download(data.value, epubFormValue.value.fileList[0].file.name);
     } else {
       console.log(errors);
@@ -182,12 +184,12 @@ function handleSubmit(e: MouseEvent) {
   });
 }
 
-function Download(content, filename) {
+function Download(content: Blob, filename: string) {
   const eleLink = document.createElement("a");
   eleLink.download = filename;
   eleLink.style.display = "none";
   // 字符内容转变成blob地址
-  const blob = new Blob([content]);
+  const blob = content;
   eleLink.href = URL.createObjectURL(blob);
   // 触发点击
   document.body.appendChild(eleLink);

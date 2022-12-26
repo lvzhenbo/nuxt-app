@@ -11,23 +11,23 @@ import archiver from "archiver";
 
 export default defineEventHandler(async (event) => {
   const { file, _fields } = await getData(event);
-  // const config: any = {};
+  const config: any = {};
   const filePath = file.file.filepath;
-  // config.type = _fields.converter;
-  // const { path: dir, cleanup } = await tmp.dir({ unsafeCleanup: true });
+  config.type = _fields.converter;
+  const { path: dir, cleanup } = await tmp.dir({ unsafeCleanup: true });
 
-  // await new Promise((res, rej) => {
-  //   fs.createReadStream(file.file.filepath)
-  //     .pipe(unzipper.Extract({ path: dir }))
-  //     .on("close", res)
-  //     .on("error", rej);
-  // });
-  // const files = (
-  //   await globby("**/*.{htm,html,xhtml,ncx,opf}", { cwd: dir })
-  // ).map((f) => path.join(dir, f));
-  // await Promise.all(files.map((f) => textConvert(f, { type: config.type })));
-  // await zipDir(dir, config.dest || filePath);
-  // await cleanup();
+  await new Promise((res, rej) => {
+    fs.createReadStream(file.file.filepath)
+      .pipe(unzipper.Extract({ path: dir }))
+      .on("close", res)
+      .on("error", rej);
+  });
+  const files = (
+    await globby("**/*.{htm,html,xhtml,ncx,opf}", { cwd: dir })
+  ).map((f) => path.join(dir, f));
+  await Promise.all(files.map((f) => textConvert(f, { type: config.type })));
+  await zipDir(dir, config.dest || filePath);
+  await cleanup();
 
   return sendStream(event, fs.createReadStream(filePath));
   // return {
@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
 function getData(
   event: H3Event,
   options?: formidable.Options
+  // @ts-ignore
 ): Promise<formidable> {
   return new Promise((resolve, reject) => {
     const form = formidable(options);
@@ -50,7 +51,10 @@ function getData(
   });
 }
 
-async function textConvert(filePath, config) {
+async function textConvert(
+  filePath: number | fs.PathLike,
+  config: { type: any; dest?: any }
+) {
   const TYPES = [
     "Simplified",
     "Traditional",
@@ -64,7 +68,7 @@ async function textConvert(filePath, config) {
   if (!TYPES.includes(config.type)) {
     throw new Error("Invalid config.type value.");
   }
-  const text = iconvLite.decode(buf, chardet.detect(buf));
+  const text = iconvLite.decode(buf, chardet.detect(buf) as string);
   const converted = await convertFun(text, config.type);
 
   return fs.writeFile(config.dest || filePath, converted, "utf-8");
@@ -81,7 +85,7 @@ async function convertFun(text: string, converter: string) {
   return res.data.text;
 }
 
-async function zipDir(dir, dest) {
+async function zipDir(dir: string, dest: fs.PathLike) {
   await new Promise((res, rej) => {
     const st = fs.createWriteStream(dest);
     const ar = archiver("zip", {

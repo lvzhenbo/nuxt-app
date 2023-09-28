@@ -1,123 +1,73 @@
 <template>
-  <NConfigProvider
-    inline-theme-disabled
-    :locale="zhCN"
-    :date-locale="dateZhCN"
-    :theme="theme"
-  >
-    <NLayout class="h-screen">
-      <NLayoutHeader class="flex justify-center">
-        <NH1 class="p-4">EPUB/TXT 电子书繁简转换</NH1>
-      </NLayoutHeader>
-      <NLayoutContent class="flex justify-center">
-        <NCard title="EPUB" class="m-4 w-96" hoverable embedded>
-          <NForm
-            ref="epubFormRef"
-            :model="epubFormValue"
-            size="small"
-            label-placement="left"
-            label-align="left"
-            label-width="auto"
-          >
-            <NFormItem label="文件">
-              <NUpload
-                v-model:file-list="epubFormValue.fileList"
-                :max="1"
-                :directory="false"
-              >
-                <NButton size="small">上传文件</NButton>
-              </NUpload>
-            </NFormItem>
-            <NFormItem label="转换器">
-              <NSelect
-                :options="options"
-                v-model:value="epubFormValue.converter"
-              />
-            </NFormItem>
-            <NFormItem>
-              <NButton @click="handleSubmit">转换</NButton>
-            </NFormItem>
-          </NForm>
-        </NCard>
-        <NCard title="TXT" class="m-4 w-96" hoverable embedded>
-          <NForm
-            size="small"
-            label-placement="left"
-            label-align="left"
-            label-width="auto"
-          >
-            <NFormItem label="文件">
-              <NUpload accept="text/plain" :max="1">
-                <NButton size="small">上传文件</NButton>
-              </NUpload>
-            </NFormItem>
-            <NFormItem label="转换器">
-              <NSelect :options="options" />
-            </NFormItem>
-            <NFormItem>
-              <NButton>转换</NButton>
-            </NFormItem>
-          </NForm>
-        </NCard>
-      </NLayoutContent>
-    </NLayout>
-  </NConfigProvider>
+  <NLayout class="h-screen">
+    <NLayoutHeader class="flex justify-center">
+      <NH1 class="p-4">EPUB/TXT 电子书繁简转换</NH1>
+    </NLayoutHeader>
+    <NLayoutContent class="flex justify-center">
+      <NCard title="EPUB" class="m-4 w-96" hoverable embedded>
+        <NForm
+          ref="epubFormRef"
+          :model="epubFormValue"
+          size="small"
+          label-placement="left"
+          label-align="left"
+          label-width="auto"
+        >
+          <NFormItem label="文件">
+            <NUpload
+              v-model:file-list="epubFormValue.fileList"
+              :max="1"
+              :directory="false"
+              accept="application/epub+zip"
+            >
+              <NButton size="small">上传文件</NButton>
+            </NUpload>
+          </NFormItem>
+          <NFormItem label="转换器">
+            <NSelect
+              :options="options"
+              v-model:value="epubFormValue.converter"
+            />
+          </NFormItem>
+          <NFormItem>
+            <NButton @click="handleSubmit">转换</NButton>
+          </NFormItem>
+        </NForm>
+      </NCard>
+      <NCard title="TXT" class="m-4 w-96" hoverable embedded>
+        <!-- <NForm
+          size="small"
+          label-placement="left"
+          label-align="left"
+          label-width="auto"
+        >
+          <NFormItem label="文件">
+            <NUpload accept="text/plain" :max="1">
+              <NButton size="small">上传文件</NButton>
+            </NUpload>
+          </NFormItem>
+          <NFormItem label="转换器">
+            <NSelect :options="options" />
+          </NFormItem>
+          <NFormItem>
+            <NButton>转换</NButton>
+          </NFormItem>
+        </NForm> -->
+      </NCard>
+    </NLayoutContent>
+  </NLayout>
 </template>
 
-<script lang="ts" setup>
-import {
-  NConfigProvider,
-  NLayout,
-  NLayoutContent,
-  NLayoutFooter,
-  NLayoutHeader,
-  NH1,
-  NCard,
-  NForm,
-  NFormItem,
-  NUpload,
-  NButton,
-  NSelect,
-} from "naive-ui";
-import { zhCN, dateZhCN, useOsTheme, darkTheme, FormInst } from "naive-ui";
-import { usePreferredDark } from "@vueuse/core";
+<script setup lang="ts">
+import type { FormInst, SelectOption, UploadFileInfo } from "naive-ui";
 
-const osThemeRef = useOsTheme();
-const isDark = usePreferredDark();
-// console.log(isDark.value);
-const theme = ref(null);
 const epubFormRef = ref<FormInst | null>(null);
 const epubFormValue = ref({
-  fileList: [],
+  fileList: [] as UploadFileInfo[],
   converter: null,
 });
 
-// const theme = computed(() => (osThemeRef.value === 'dark' ? darkTheme : null));
-watch(
-  () => osThemeRef.value,
-  () => {
-    // @ts-ignore
-    theme.value = osThemeRef.value === "dark" ? darkTheme : null;
-  }
-);
-function getTheme() {
-  //@ts-ignore
-  theme.value = osThemeRef.value === "dark" ? darkTheme : null;
-}
-
-onMounted(async () => {
-  getTheme();
-  // await temp();
-});
-
-async function temp() {
-  const response = await $fetch("https://api.nuxtjs.dev/mountains", {
-    method: "POST",
-  });
-  console.log(response);
-}
-
-const options = [
+const options: SelectOption[] = [
   {
     label: "简体化",
     value: "Simplified",
@@ -165,19 +115,15 @@ function handleSubmit(e: MouseEvent) {
   epubFormRef.value?.validate(async (errors) => {
     if (!errors) {
       const params = new FormData();
-      const key = new Date().getTime();
-      //@ts-ignore
-      params.append("converter", epubFormValue.value.converter);
-      //@ts-ignore
-      params.append("file", epubFormValue.value.fileList[0].file);
+      params.append("converter", epubFormValue.value.converter as unknown as string);
+      params.append("file", epubFormValue.value.fileList[0].file as File);
       const { data } = await useFetch("/api/epub", {
         method: "POST",
         body: params,
-        key: key.toString(),
         responseType: 'blob',
       });
-      // @ts-ignore
-      Download(data.value, epubFormValue.value.fileList[0].file.name);
+
+      Download(data.value as Blob, epubFormValue.value.fileList[0].file?.name as string);
     } else {
       console.log(errors);
     }
@@ -198,5 +144,3 @@ function Download(content: Blob, filename: string) {
   document.body.removeChild(eleLink);
 }
 </script>
-
-<style scoped></style>

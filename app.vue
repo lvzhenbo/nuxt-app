@@ -1,15 +1,9 @@
 <template>
-  <NuxtPage />
+  <NConfigProvider inline-theme-disabled :locale="zhCN" :date-locale="dateZhCN">
+    <NuxtPage />
+  </NConfigProvider>
 </template>
 
-<style>
-.page-enter-active,
-.page-leave-active {
-  transition: all 0.4s;
-}
-.page-enter-from,
-.page-leave-to {
-  opacity: 0;
-  filter: blur(1rem);
-}
-</style>
+<script setup lang="ts">
+import { zhCN, dateZhCN } from "naive-ui";
+</script>

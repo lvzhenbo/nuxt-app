@@ -115,15 +115,21 @@ function handleSubmit(e: MouseEvent) {
   epubFormRef.value?.validate(async (errors) => {
     if (!errors) {
       const params = new FormData();
-      params.append("converter", epubFormValue.value.converter as unknown as string);
+      params.append(
+        "converter",
+        epubFormValue.value.converter as unknown as string
+      );
       params.append("file", epubFormValue.value.fileList[0].file as File);
       const { data } = await useFetch("/api/epub", {
         method: "POST",
         body: params,
-        responseType: 'blob',
+        responseType: "blob",
       });
 
-      Download(data.value as Blob, epubFormValue.value.fileList[0].file?.name as string);
+      Download(
+        data.value as Blob,
+        epubFormValue.value.fileList[0].file?.name as string
+      );
     } else {
       console.log(errors);
     }

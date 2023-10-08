@@ -13,7 +13,7 @@
           label-align="left"
           label-width="auto"
           :rules="{
-            fileList: [{ required: true, message: '请上传文件', trigger: 'change' }],
+            // fileList: [{ required: true, message: '请上传文件', trigger: 'change' }],
             converter: [{ required: true, message: '请选择转换器', trigger: 'change' }],
           }"
           require-mark-placement="left"

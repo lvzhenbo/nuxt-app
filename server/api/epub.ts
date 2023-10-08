@@ -31,7 +31,10 @@ export default defineEventHandler(async (event) => {
     path.join(dirPath, f),
   );
 
-  await Promise.all(files.map((f) => textConvert(f, { converter })));
+  for (const file of files) {
+    await textConvert(file, { converter });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
 
   await zipDir(dirPath, outPath);
 

@@ -12,8 +12,17 @@
           label-placement="left"
           label-align="left"
           label-width="auto"
+          :rules="{
+            fileList: [
+              { required: true, message: '请上传文件', trigger: 'change' },
+            ],
+            converter: [
+              { required: true, message: '请选择转换器', trigger: 'change' },
+            ],
+          }"
+          require-mark-placement="left"
         >
-          <NFormItem label="文件">
+          <NFormItem label="文件" path="fileList">
             <NUpload
               v-model:file-list="epubFormValue.fileList"
               :max="1"
@@ -23,7 +32,7 @@
               <NButton size="small">上传文件</NButton>
             </NUpload>
           </NFormItem>
-          <NFormItem label="转换器">
+          <NFormItem label="转换器" path="converter">
             <NSelect
               :options="options"
               v-model:value="epubFormValue.converter"

@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@bg-dev/nuxt-naiveui':
+    specifier: ^1.5.1
+    version: 1.5.1(vue@3.3.4)
   '@huntersofbook/naive-ui-nuxt':
     specifier: ^1.2.0
     version: 1.2.0(vue@3.3.4)
@@ -407,6 +410,19 @@ packages:
       '@babel/helper-string-parser': 7.22.5
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
+    dev: true
+
+  /@bg-dev/nuxt-naiveui@1.5.1(vue@3.3.4):
+    resolution: {integrity: sha512-2/MgotDJWVIWze3GRJ2/XhKTUypCMJ2nlr5dwgiJ4M2j0P58kP4SMaspPwM2ly5BYzEd6vjnzvWZezPq++lz9A==}
+    dependencies:
+      '@iconify/vue': 4.1.1(vue@3.3.4)
+      '@nuxt/kit': 3.7.4
+      defu: 6.1.2
+      naive-ui: 2.35.0(vue@3.3.4)
+    transitivePeerDependencies:
+      - rollup
+      - supports-color
+      - vue
     dev: true
 
   /@cloudflare/kv-asset-handler@0.3.0:
@@ -889,6 +905,19 @@ packages:
     transitivePeerDependencies:
       - rollup
       - supports-color
+    dev: true
+
+  /@iconify/types@2.0.0:
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
+    dev: true
+
+  /@iconify/vue@4.1.1(vue@3.3.4):
+    resolution: {integrity: sha512-RL85Bm/DAe8y6rT6pux7D2FJSiUEM/TPfyK7GrbAOfTSwrhvwJW+S5yijdGcmtXouA8MtuH9C7l4hiSE4mLMjg==}
+    peerDependencies:
+      vue: '>=3'
+    dependencies:
+      '@iconify/types': 2.0.0
+      vue: 3.3.4
     dev: true
 
   /@ioredis/commands@1.2.0:

@@ -13,12 +13,8 @@
           label-align="left"
           label-width="auto"
           :rules="{
-            fileList: [
-              { required: true, message: '请上传文件', trigger: 'change' },
-            ],
-            converter: [
-              { required: true, message: '请选择转换器', trigger: 'change' },
-            ],
+            fileList: [{ required: true, message: '请上传文件', trigger: 'change' }],
+            converter: [{ required: true, message: '请选择转换器', trigger: 'change' }],
           }"
           require-mark-placement="left"
         >
@@ -33,10 +29,7 @@
             </NUpload>
           </NFormItem>
           <NFormItem label="转换器" path="converter">
-            <NSelect
-              :options="options"
-              v-model:value="epubFormValue.converter"
-            />
+            <NSelect v-model:value="epubFormValue.converter" :options="options" />
           </NFormItem>
           <NFormItem>
             <NButton @click="handleSubmit">转换</NButton>
@@ -68,94 +61,89 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInst, SelectOption, UploadFileInfo } from "naive-ui";
+  import type { FormInst, SelectOption, UploadFileInfo } from 'naive-ui';
 
-const epubFormRef = ref<FormInst | null>(null);
-const epubFormValue = ref({
-  fileList: [] as UploadFileInfo[],
-  converter: null,
-});
-
-const options: SelectOption[] = [
-  {
-    label: "简体化",
-    value: "Simplified",
-  },
-  {
-    label: "繁体化",
-    value: "Traditional",
-  },
-  {
-    label: "中国大陆化",
-    value: "China",
-  },
-  {
-    label: "中国香港化",
-    value: "Hongkong",
-  },
-  {
-    label: "中国台湾化",
-    value: "Taiwan",
-  },
-  {
-    label: "拼音化",
-    value: "Pinyin",
-  },
-  {
-    label: "注音化",
-    value: "Bopomofo",
-  },
-  {
-    label: "火星化",
-    value: "Mars",
-  },
-  {
-    label: "维基简体化",
-    value: "WikiSimplified",
-  },
-  {
-    label: "维基繁体化",
-    value: "WikiTraditional",
-  },
-];
-
-function handleSubmit(e: MouseEvent) {
-  e.preventDefault();
-  epubFormRef.value?.validate(async (errors) => {
-    if (!errors) {
-      const params = new FormData();
-      params.append(
-        "converter",
-        epubFormValue.value.converter as unknown as string
-      );
-      params.append("file", epubFormValue.value.fileList[0].file as File);
-      const { data } = await useFetch("/api/epub", {
-        method: "POST",
-        body: params,
-        responseType: "blob",
-      });
-
-      Download(
-        data.value as Blob,
-        epubFormValue.value.fileList[0].file?.name as string
-      );
-    } else {
-      console.log(errors);
-    }
+  const epubFormRef = ref<FormInst | null>(null);
+  const epubFormValue = ref({
+    fileList: [] as UploadFileInfo[],
+    converter: null,
   });
-}
 
-function Download(content: Blob, filename: string) {
-  const eleLink = document.createElement("a");
-  eleLink.download = filename;
-  eleLink.style.display = "none";
-  // 字符内容转变成blob地址
-  const blob = content;
-  eleLink.href = URL.createObjectURL(blob);
-  // 触发点击
-  document.body.appendChild(eleLink);
-  eleLink.click();
-  // 然后移除
-  document.body.removeChild(eleLink);
-}
+  const options: SelectOption[] = [
+    {
+      label: '简体化',
+      value: 'Simplified',
+    },
+    {
+      label: '繁体化',
+      value: 'Traditional',
+    },
+    {
+      label: '中国大陆化',
+      value: 'China',
+    },
+    {
+      label: '中国香港化',
+      value: 'Hongkong',
+    },
+    {
+      label: '中国台湾化',
+      value: 'Taiwan',
+    },
+    {
+      label: '拼音化',
+      value: 'Pinyin',
+    },
+    {
+      label: '注音化',
+      value: 'Bopomofo',
+    },
+    {
+      label: '火星化',
+      value: 'Mars',
+    },
+    {
+      label: '维基简体化',
+      value: 'WikiSimplified',
+    },
+    {
+      label: '维基繁体化',
+      value: 'WikiTraditional',
+    },
+  ];
+
+  function handleSubmit(e: MouseEvent) {
+    e.preventDefault();
+    epubFormRef.value?.validate(async (errors) => {
+      if (!errors) {
+        const params = new FormData();
+        params.append('converter', epubFormValue.value.converter as unknown as string);
+        params.append('file', epubFormValue.value.fileList[0].file as File);
+        const { data } = await useFetch('/api/epub', {
+          method: 'POST',
+          body: params,
+          responseType: 'blob',
+        });
+
+        Download(data.value as Blob, epubFormValue.value.fileList[0].file?.name as string);
+      } else {
+        console.log(errors);
+      }
+    });
+  }
+
+  function Download(content: Blob, filename: string) {
+    const eleLink = document.createElement('a');
+    eleLink.download = filename;
+    eleLink.style.display = 'none';
+    // 字符内容转变成blob地址
+    const blob = content;
+    eleLink.href = URL.createObjectURL(blob);
+    // 触发点击
+    document.body.appendChild(eleLink);
+    eleLink.click();
+    // 然后移除
+    URL.revokeObjectURL(eleLink.href); // 释放URL 对象
+    document.body.removeChild(eleLink);
+  }
 </script>

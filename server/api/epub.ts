@@ -1,25 +1,25 @@
-import fsP from "node:fs/promises";
-import fs from "node:fs";
-import tmp from "tmp-promise";
-import { globby } from "globby";
-import path from "path";
-import iconvLite from "iconv-lite";
-import chardet from "chardet";
-import archiver from "archiver";
-import { unzip, zip } from "qiao-zip";
+import fsP from 'node:fs/promises';
+import fs from 'node:fs';
+import path from 'path';
+import { file as createTmpFile, dir as createTmpDir } from 'tmp-promise';
+import { globby } from 'globby';
+import iconvLite from 'iconv-lite';
+import { detect } from 'chardet';
+import archiver from 'archiver';
+import { unzip } from 'qiao-zip';
 
 export default defineEventHandler(async (event) => {
   const formData = await readFormData(event);
-  const file = formData.get("file") as File;
-  const converter = formData.get("converter") as string;
-  const { path: rowPath, cleanup: rowFileCleanup } = await tmp.file({
-    postfix: ".epub",
+  const file = formData.get('file') as File;
+  const converter = formData.get('converter') as string;
+  const { path: rowPath, cleanup: rowFileCleanup } = await createTmpFile({
+    postfix: '.epub',
   });
-  const { path: dirPath, cleanup: dirCleanup } = await tmp.dir({
+  const { path: dirPath, cleanup: dirCleanup } = await createTmpDir({
     unsafeCleanup: true,
   });
-  const { path: outPath, cleanup: outCleanup } = await tmp.file({
-    postfix: ".epub",
+  const { path: outPath, cleanup: outCleanup } = await createTmpFile({
+    postfix: '.epub',
   });
 
   const buffer = await file.arrayBuffer();
@@ -27,11 +27,11 @@ export default defineEventHandler(async (event) => {
 
   await unzip(rowPath, dirPath);
 
-  const files = (
-    await globby("**/*.{htm,html,xhtml,ncx,opf}", { cwd: dirPath })
-  ).map((f) => path.join(dirPath, f));
+  const files = (await globby('**/*.{htm,html,xhtml,ncx,opf}', { cwd: dirPath })).map((f) =>
+    path.join(dirPath, f),
+  );
 
-  // await Promise.all(files.map((f) => textConvert(f, { converter })));
+  await Promise.all(files.map((f) => textConvert(f, { converter })));
 
   await zipDir(dirPath, outPath);
 
@@ -48,27 +48,27 @@ export default defineEventHandler(async (event) => {
 
 async function textConvert(filePath: string, config: { converter: string }) {
   const TYPES = [
-    "Simplified",
-    "Traditional",
-    "China",
-    "Hongkong",
-    "Taiwan",
-    "WikiSimplified",
-    "WikiTraditional",
+    'Simplified',
+    'Traditional',
+    'China',
+    'Hongkong',
+    'Taiwan',
+    'WikiSimplified',
+    'WikiTraditional',
   ];
   const buf = await fsP.readFile(filePath);
   if (!TYPES.includes(config.converter)) {
-    throw new Error("Invalid converter value.");
+    throw new Error('Invalid converter value.');
   }
-  const text = iconvLite.decode(buf, chardet.detect(buf) as string);
+  const text = iconvLite.decode(buf, detect(buf) as string);
   const converted = await convertFun(text, config.converter);
 
-  return fsP.writeFile(filePath, converted, "utf-8");
+  return fsP.writeFile(filePath, converted, 'utf-8');
 }
 
 async function convertFun(text: string, converter: string) {
-  const res: any = await $fetch("https://api.zhconvert.org/convert", {
-    method: "POST",
+  const res: any = await $fetch('https://api.zhconvert.org/convert', {
+    method: 'POST',
     body: {
       text,
       converter,
@@ -78,13 +78,13 @@ async function convertFun(text: string, converter: string) {
 }
 
 async function zipDir(dir: string, out: string) {
-  await new Promise((res, rej) => {
+  await new Promise((resolve, reject) => {
     const st = fs.createWriteStream(out);
-    const ar = archiver("zip", {
+    const ar = archiver('zip', {
       zlib: { level: 9 },
     });
-    ar.on("end", res);
-    ar.on("error", rej);
+    ar.on('end', resolve);
+    ar.on('error', reject);
     ar.pipe(st);
     ar.directory(dir, false);
     ar.finalize();

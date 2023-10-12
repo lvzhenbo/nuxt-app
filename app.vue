@@ -1,6 +1,8 @@
 <template>
   <NConfigProvider inline-theme-disabled :locale="zhCN" :date-locale="dateZhCN" :theme="theme">
-    <NuxtPage />
+    <AppProvider>
+      <NuxtPage />
+    </AppProvider>
   </NConfigProvider>
 </template>
 

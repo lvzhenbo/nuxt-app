@@ -12,10 +12,7 @@
           label-placement="left"
           label-align="left"
           label-width="auto"
-          :rules="{
-            // fileList: [{ required: true, message: '请上传文件', trigger: 'change' }],
-            converter: [{ required: true, message: '请选择转换器', trigger: 'change' }],
-          }"
+          :rules="rules"
           require-mark-placement="left"
         >
           <NFormItem label="文件" path="fileList">
@@ -24,15 +21,21 @@
               :max="1"
               :directory="false"
               accept="application/epub+zip"
+              :disabled="loading"
+              @change="handleChange"
             >
-              <NButton size="small">上传文件</NButton>
+              <NButton :disabled="loading" size="small">上传文件</NButton>
             </NUpload>
           </NFormItem>
           <NFormItem label="转换器" path="converter">
-            <NSelect v-model:value="epubFormValue.converter" :options="options" />
+            <NSelect
+              v-model:value="epubFormValue.converter"
+              :disabled="loading"
+              :options="options"
+            />
           </NFormItem>
           <NFormItem>
-            <NButton @click="handleSubmit">转换</NButton>
+            <NButton :loading="loading" @click="handleSubmit">转换</NButton>
           </NFormItem>
         </NForm>
       </NCard>
@@ -61,14 +64,16 @@
 </template>
 
 <script setup lang="ts">
-  import type { FormInst, SelectOption, UploadFileInfo } from 'naive-ui';
+  import type { FormInst, SelectOption, UploadFileInfo, FormRules } from 'naive-ui';
+  import Jszip from 'jszip';
+  import { minimatch } from 'minimatch';
 
   const epubFormRef = ref<FormInst | null>(null);
   const epubFormValue = ref({
     fileList: [] as UploadFileInfo[],
     converter: null,
   });
-
+  const converterFiles = ref<{ path: string; file: string }[]>([]);
   const options: SelectOption[] = [
     {
       label: '简体化',
@@ -111,21 +116,82 @@
       value: 'WikiTraditional',
     },
   ];
+  const rules: FormRules = {
+    fileList: [
+      {
+        required: true,
+        trigger: 'change',
+        validator: (rule, value: UploadFileInfo[]) => {
+          if (value.length === 0) {
+            return new Error('请选择文件');
+          }
+          if (value[0].file?.type !== 'application/epub+zip') {
+            return new Error('请选择 EPUB 文件');
+          }
+          return true;
+        },
+      },
+    ],
+    converter: [{ required: true, message: '请选择转换器', trigger: 'change' }],
+  };
+  const loading = ref(false);
+  const isBackEnd = ref(false);
+  const message = useMessage();
+
+  onMounted(async () => {
+    const { data } = await useFetch('/api/', {
+      method: 'get',
+    });
+    if (data.value) {
+      isBackEnd.value = true;
+    }
+  });
 
   function handleSubmit(e: MouseEvent) {
     e.preventDefault();
     epubFormRef.value?.validate(async (errors) => {
       if (!errors) {
-        const params = new FormData();
-        params.append('converter', epubFormValue.value.converter as unknown as string);
-        params.append('file', epubFormValue.value.fileList[0].file as File);
-        const { data } = await useFetch('/api/epub', {
-          method: 'POST',
-          body: params,
-          responseType: 'blob',
-        });
-
-        Download(data.value as Blob, epubFormValue.value.fileList[0].file?.name as string);
+        try {
+          loading.value = true;
+          message.loading('转换中，请稍后...');
+          if (isBackEnd.value) {
+            const params = new FormData();
+            params.append('converter', epubFormValue.value.converter as unknown as string);
+            params.append('file', epubFormValue.value.fileList[0].file as File);
+            const { data } = await useFetch('/api/epub', {
+              method: 'POST',
+              body: params,
+              responseType: 'blob',
+            });
+            const res: Ref<any> = await textConvert(
+              epubFormValue.value.fileList[0].file?.name as string,
+              epubFormValue.value.converter as unknown as string,
+            );
+            if (res.value.data.text) {
+              Download(data.value as Blob, res.value.data.text);
+            } else {
+              Download(data.value as Blob, epubFormValue.value.fileList[0].file?.name as string);
+            }
+          } else {
+            for (let i = 0; i < converterFiles.value.length; i++) {
+              const res: Ref<any> = await textConvert(
+                converterFiles.value[i].file,
+                epubFormValue.value.converter as unknown as string,
+              );
+              if (res.value.data.text) {
+                converterFiles.value[i].file = res.value.data.text;
+              }
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+            await editZip();
+          }
+          loading.value = false;
+          message.success('转换成功');
+        } catch (error) {
+          console.error(error);
+          loading.value = false;
+          message.error('转换失败，如有需要请联系我');
+        }
       } else {
         console.log(errors);
       }
@@ -145,5 +211,63 @@
     // 然后移除
     URL.revokeObjectURL(eleLink.href); // 释放URL 对象
     document.body.removeChild(eleLink);
+  }
+
+  async function handleChange({
+    file,
+    event,
+  }: {
+    file: UploadFileInfo;
+    fileList: Array<UploadFileInfo>;
+    event?: Event;
+  }) {
+    if (event) {
+      converterFiles.value = [];
+      const zip = await Jszip.loadAsync(file.file as File);
+      zip.forEach(async (relativePath, zipFile) => {
+        if (minimatch(relativePath, '**/*.{htm,html,xhtml,ncx,opf}')) {
+          converterFiles.value.push({
+            path: relativePath,
+            file: await zipFile.async('string'),
+          });
+        }
+      });
+    } else {
+      converterFiles.value = [];
+    }
+  }
+
+  async function textConvert(text: string, converter: string) {
+    const { data } = await useFetch('https://api.zhconvert.org/convert', {
+      method: 'POST',
+      body: {
+        text,
+        converter,
+      },
+    });
+    return data;
+  }
+
+  async function editZip() {
+    const zip = await Jszip.loadAsync(epubFormValue.value.fileList[0].file as File);
+    for (let i = 0; i < converterFiles.value.length; i++) {
+      zip.file(converterFiles.value[i].path, converterFiles.value[i].file);
+    }
+    const content = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 9,
+      },
+    });
+    const res: Ref<any> = await textConvert(
+      epubFormValue.value.fileList[0].file?.name as string,
+      epubFormValue.value.converter as unknown as string,
+    );
+    if (res.value.data.text) {
+      Download(content, res.value.data.text);
+    } else {
+      Download(content, epubFormValue.value.fileList[0].file?.name as string);
+    }
   }
 </script>
